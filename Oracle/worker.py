@@ -13,68 +13,16 @@ ALEO_NODE_URL = os.getenv("ALEO_NODE_URL")
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 
-def fetch_eth_staking_data():
-    """
-    Fetches ETH staking rate (total_staked / total_supply).
-    Returns a percentage value (e.g., 28.5).
-    """
-    try:
-        print("📸 Taking snapshot of ETH staking data...")
+from metrics.registry import registry
 
-        # 1. Fetch Total Supply from Etherscan
-        supply_url = f"https://api.etherscan.io/api?module=stats&action=ethsupply&apikey={ETHERSCAN_API_KEY}"
-        supply_resp = requests.get(supply_url)
-        supply_data = supply_resp.json()
-        
-        if supply_data.get("status") != "1":
-            print(f"❌ Etherscan Error: {supply_data.get('message')}")
-            return None
-            
-        # Total supply is returned in Wei, convert to ETH (10^18)
-        total_supply = int(supply_data["result"]) / 10**18
-        
-        # 2. Fetch Total Staked from Beaconcha.in
-        # Using a public endpoint that provides total staked ETH. 
-        # Note: Beaconcha.in might require headers for some endpoints.
-        staked_url = "https://beaconcha.in/api/v1/ethstore/latest"
-        staked_resp = requests.get(staked_url)
-        staked_data = staked_resp.json()
-        
-        if not staked_data.get("status") == "OK":
-            # Fallback to another endpoint if ethstore is not available
-            staked_url = "https://beaconcha.in/api/v1/validator/statistics"
-            staked_resp = requests.get(staked_url)
-            staked_data = staked_resp.json()
-            
-            if not staked_data.get("status") == "OK":
-                print(f"❌ Beaconcha.in Error: {staked_data.get('message')}")
-                return None
-            
-            # Sum up balances or use a provided total
-            total_staked = staked_data["data"][0]["active_validators_total"] * 32 # Approximation
-        else:
-            # Payout data provides an eth_balance or equivalent
-            total_staked = int(staked_data["data"]["total_balance"]) / 10**18 # total_balance in Wei/Gwei? Check docs.
-            # Assuming Gwei for Beacon chain usually
-            total_staked = int(staked_data["data"]["total_balance"]) / 10**9 # Gwei to ETH
-
-        print(f"💎 Total Staked: {total_staked:,.2f} ETH")
-        print(f"🪙 Total Supply: {total_supply:,.2f} ETH")
-
-        staking_rate = (total_staked / total_supply) * 100
-        print(f"📊 Calculated Staking Rate: {staking_rate:.2f}%")
-
-        return staking_rate
-    except Exception as e:
-        print(f"❌ Error fetching staking data: {e}")
-        return None
+ORACLE_PRIVATE_KEY = os.getenv("ORACLE_PRIVATE_KEY")
+ALEO_NODE_URL = os.getenv("ALEO_NODE_URL")
 
 
 def resolve_market(market_id, winning_option):
     """
     Executes the Aleo transaction to resolve the market using the Aleo SDK.
     """
-
     if not ORACLE_PRIVATE_KEY or not ALEO_NODE_URL:
         print("❌ Missing Oracle credentials in .env.")
         return False
@@ -117,8 +65,6 @@ def resolve_market(market_id, winning_option):
         process.verify_execution(execution)
 
         # 5. Handle Fees (Public Fee)
-        # For simplicity, we use a fixed fee or calculate it if costs are known
-        # In a real environment, you'd check process.execution_cost(execution)
         fee_cost = 100_000  # Example fee in microcredits
         fee_auth = process.authorize_fee_public(
             private_key, fee_cost, execution_id, None
@@ -132,8 +78,6 @@ def resolve_market(market_id, winning_option):
         transaction = aleo.Transaction.from_execution(execution, fee)
         print(f"📡 Broadcasting transaction {execution_id}...")
 
-        # Use query to broadcast
-        # Note: If Query doesn't have a direct broadcast, we'd use requests to POST to the node's /transaction/broadcast endpoint
         tx_json = transaction.to_json()
         response = requests.post(
             f"{ALEO_NODE_URL}/testnet3/transaction/broadcast", data=tx_json
@@ -150,7 +94,6 @@ def resolve_market(market_id, winning_option):
         print(f"❌ SDK Error during resolution: {e}")
         return False
 
-
 def main():
     db.init_db()
     print("🤖 Oracle Worker is running and monitoring pending markets...")
@@ -161,9 +104,15 @@ def main():
 
         for market_id, deadline, threshold, metric_type in pending:
             if current_time >= deadline:
-                print(f"⏰ Deadline reached for market: {market_id}")
+                print(f"⏰ Deadline reached for market: {market_id} (Metric: {metric_type})")
 
-                value = fetch_eth_staking_data()
+                # Modular Metric Fetching
+                handler = registry.get_metric(metric_type)
+                if not handler:
+                    print(f"❌ No handler found for metric type: {metric_type}")
+                    continue
+
+                value = handler.fetch_value()
                 if value is not None:
                     # Resolve: Option 1 (Yes) if value >= threshold, Option 2 (No) otherwise
                     winning_option = 1 if value >= threshold else 2
