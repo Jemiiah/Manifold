@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Market, MarketFilter } from '@/types';
 import { filterMarkets, countMarketsByStatus } from '@/lib/utils';
 
 export function useMarkets(initialMarkets: Market[]) {
   const [filter, setFilter] = useState<MarketFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
 
   const filteredMarkets = useMemo(() => {
     let markets = filterMarkets(initialMarkets, filter);
@@ -30,23 +29,12 @@ export function useMarkets(initialMarkets: Market[]) {
     [initialMarkets]
   );
 
-  const selectMarket = useCallback((market: Market) => {
-    setSelectedMarket(market);
-  }, []);
-
-  const clearSelection = useCallback(() => {
-    setSelectedMarket(null);
-  }, []);
-
   return {
     filter,
     setFilter,
     searchQuery,
     setSearchQuery,
     filteredMarkets,
-    selectedMarket,
-    selectMarket,
-    clearSelection,
     liveCount: counts.live,
     upcomingCount: counts.upcoming,
   };

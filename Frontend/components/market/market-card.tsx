@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { TrendingUp, TrendingDown, Clock, DollarSign } from 'lucide-react';
 import { Market } from '@/types';
 import { Badge } from '@/components/ui';
@@ -7,15 +8,14 @@ import { cn } from '@/lib/utils';
 
 interface MarketCardProps {
   market: Market;
-  onClick: (market: Market) => void;
 }
 
-export function MarketCard({ market, onClick }: MarketCardProps) {
+export function MarketCard({ market }: MarketCardProps) {
   const isPositive = market.change >= 0;
 
   return (
-    <div
-      onClick={() => onClick(market)}
+    <Link
+      href={`/market/${market.id}`}
       className="group bg-zinc-900/80 border border-zinc-800/60 rounded-[24px] pt-6 px-6 pb-6 w-[301px] h-[252px] cursor-pointer transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-0.5 overflow-hidden flex flex-col"
     >
       {/* Header */}
@@ -69,6 +69,6 @@ export function MarketCard({ market, onClick }: MarketCardProps) {
           {market.endDate}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

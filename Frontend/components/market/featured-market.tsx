@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Flame, TrendingUp, Users } from 'lucide-react';
 import { Market } from '@/types';
 
 interface FeaturedMarketProps {
   markets: Market[];
-  onClick: (market: Market) => void;
 }
 
-export function FeaturedMarket({ markets, onClick }: FeaturedMarketProps) {
+export function FeaturedMarket({ markets }: FeaturedMarketProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const trendingMarkets = markets.slice(0, 5);
 
@@ -31,9 +31,9 @@ export function FeaturedMarket({ markets, onClick }: FeaturedMarketProps) {
       </div>
 
       {/* Main Card */}
-      <div
-        className="relative bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 border border-zinc-700/50 rounded-3xl p-8 cursor-pointer hover:border-zinc-600 transition-all duration-300 overflow-hidden min-h-[280px]"
-        onClick={() => onClick(market)}
+      <Link
+        href={`/market/${market.id}`}
+        className="block relative bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 border border-zinc-700/50 rounded-3xl p-8 cursor-pointer hover:border-zinc-600 transition-all duration-300 overflow-hidden min-h-[280px]"
       >
         {/* Background gradient accent */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-500/5 to-transparent pointer-events-none" />
@@ -92,7 +92,7 @@ export function FeaturedMarket({ markets, onClick }: FeaturedMarketProps) {
             </div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Pagination dots */}
       <div className="flex items-center justify-center gap-2 mt-4">

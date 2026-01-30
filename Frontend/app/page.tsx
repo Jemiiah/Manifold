@@ -4,34 +4,32 @@ import { useState } from 'react';
 import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
 import { Navbar } from '@/components/navbar';
 import { Portfolio } from '@/components/portfolio';
-import { MarketCard, MarketFilters, FeaturedMarket, EventDetail } from '@/components/market';
-import { useMarkets } from '@/hooks';
-import { markets, mockActivities } from '@/lib/data';
+import { MarketCard, MarketFilters, FeaturedMarket } from '@/components/market';
+import { useMarkets, useAleoPools } from '@/hooks';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'market' | 'portfolio'>('market');
   const { connected: isConnected } = useWallet();
+
+  // Fetch pools from Aleo network (with dummy fallback)
+  const { pools, isLoading: isLoadingPools, isDummyData } = useAleoPools();
+
   const {
     filter,
     setFilter,
     searchQuery,
     setSearchQuery,
     filteredMarkets,
-    selectedMarket,
-    selectMarket,
-    clearSelection,
     liveCount,
     upcomingCount,
-  } = useMarkets(markets);
+  } = useMarkets(pools);
 
   const handleLogoClick = () => {
-    clearSelection();
     setActiveTab('market');
   };
 
   const handleTabChange = (tab: 'market' | 'portfolio') => {
     setActiveTab(tab);
-    clearSelection();
   };
 
   return (
@@ -47,8 +45,6 @@ export default function HomePage() {
       <main className="max-w-7xl mx-auto px-6 py-10">
         {activeTab === 'portfolio' ? (
           <Portfolio isConnected={isConnected} />
-        ) : selectedMarket ? (
-          <EventDetail market={selectedMarket} activities={mockActivities} onBack={clearSelection} />
         ) : (
           <div className="animate-fade-in">
             {/* Header */}
@@ -59,6 +55,11 @@ export default function HomePage() {
               <p className="text-zinc-400 text-lg">
                 Trade on crypto events with zero-knowledge privacy on Aleo.
               </p>
+              {isDummyData && (
+                <p className="text-amber-400/70 text-sm mt-2">
+                  Showing sample markets. Create a pool to see real predictions.
+                </p>
+              )}
             </div>
 
             {/* Filters */}
@@ -70,14 +71,21 @@ export default function HomePage() {
             />
 
             {/* Featured Market */}
-            <FeaturedMarket markets={markets} onClick={selectMarket} />
+            <FeaturedMarket markets={pools} />
 
-            {/* Market Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {filteredMarkets.map((market) => (
-                <MarketCard key={market.id} market={market} onClick={selectMarket} />
-              ))}
-            </div>
+            {/* Loading State */}
+            {isLoadingPools ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              /* Market Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {filteredMarkets.map((market) => (
+                  <MarketCard key={market.id} market={market} />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>

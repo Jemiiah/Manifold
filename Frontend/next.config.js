@@ -9,6 +9,14 @@ const nextConfig = {
       '@react-native-async-storage/async-storage': false,
     };
     config.externals.push('pino-pretty', 'encoding');
+
+    // Enable WebAssembly and top-level await for Provable SDK
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      topLevelAwait: true,
+    };
+
     return config;
   },
 };
