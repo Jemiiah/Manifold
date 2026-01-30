@@ -47,8 +47,10 @@ async function setupSDK() {
 program
     .command("create-market <title> <threshold> <snapshot_time> [metric]")
     .description("Create a new prediction market")
-    .action(async (title, threshold, snapshotTime, metric) => {
+    .option("-d, --description <text>", "Description of the market", "")
+    .action(async (title, threshold, snapshotTime, metric, options) => {
         const selectedMetric = metric || "eth_staking_rate";
+        const description = options.description;
 
         const stringToField = (str: string): string => {
             const buffer = Buffer.from(str, "utf8");
@@ -87,7 +89,7 @@ program
             console.log(`✅ Market creation transaction broadcasted! ID: ${txId}`);
 
             // Register in backend DB
-            db.addMarket(title, parseInt(snapshotTime), parseFloat(threshold), selectedMetric);
+            db.addMarket(title, parseInt(snapshotTime), parseFloat(threshold), selectedMetric, description);
             console.log(`Market registered in backend DB for snapshot at ${snapshotTime}`);
 
         } catch (e: any) {
