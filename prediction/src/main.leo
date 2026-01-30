@@ -224,16 +224,21 @@ program predictionprivacyhack.aleo {
         };
 
         // todo(): logic to transfer winnings to user would go here
-        return (updated_prediction, finalize_collect_winnings(prediction.pool_id, prediction.id, prediction.amount, winning_option));
+        return (updated_prediction, finalize_collect_winnings(prediction.pool_id, prediction.id, prediction.amount, winning_option, total_staked, option_a_stakes, option_b_stakes));
     }
 
-    async function finalize_collect_winnings (pool_id: field, prediction_id: field, amount: u64, winning_option: u64)  {
-            let pool_created = Mapping::contains(pools, pool_id);
+    async function finalize_collect_winnings (pool_id: field, prediction_id: field, amount: u64, winning_option: u64, total_staked: u64, 
+        option_a_stakes: u64, 
+        option_b_stakes: u64)  {
+        let pool_created = Mapping::contains(pools, pool_id);
         assert(pool_created); // ensure pool exists
 
         let pool = Mapping::get(pools, pool_id);
         assert_eq(pool.status, 2u8);  // ensure pool is resolved   
         assert_eq(pool.winning_option, winning_option); // ensure the winning option matches
+        assert_eq(pool.total_staked, total_staked); // ensure total staked matches
+        assert_eq(pool.option_a_stakes, option_a_stakes); // ensure option a stakes matches
+        assert_eq(pool.option_b_stakes, option_b_stakes); // ensure option b
     }
 
     // helper function to calculate winnings
