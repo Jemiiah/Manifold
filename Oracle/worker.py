@@ -1,43 +1,32 @@
 import time
-import os
+
 import aleo
 import requests
-from dotenv import load_dotenv
+
 import db
-
-# Load environment variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
-
-ORACLE_PRIVATE_KEY = os.getenv("ORACLE_PRIVATE_KEY")
-ALEO_NODE_URL = os.getenv("ALEO_NODE_URL")
-ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
-
-
 from metrics.registry import registry
+import config
 
-ORACLE_PRIVATE_KEY = os.getenv("ORACLE_PRIVATE_KEY")
-ALEO_NODE_URL = os.getenv("ALEO_NODE_URL")
 
 
 def resolve_market(market_id, winning_option):
     """
     Executes the Aleo transaction to resolve the market using the Aleo SDK.
     """
-    if not ORACLE_PRIVATE_KEY or not ALEO_NODE_URL:
+    if not config.ORACLE_PRIVATE_KEY or not config.ALEO_NODE_URL:
         print("❌ Missing Oracle credentials in .env.")
         return False
 
     try:
         # 1. Setup Oracle Account and Query
-        private_key = aleo.PrivateKey.from_string(ORACLE_PRIVATE_KEY)
-        query = aleo.Query.rest(ALEO_NODE_URL)
+        private_key = aleo.PrivateKey.from_string(config.ORACLE_PRIVATE_KEY)
+        query = aleo.Query.rest(config.ALEO_NODE_URL)
         process = aleo.Process.load()
 
         # 2. Load the prediction program from the network
-        program_id = "prediction.aleo"
-        print(f"📡 Fetching program {program_id} from the network...")
-        program_source = query.get_program(program_id)
-        
+        print(f"📡 Fetching program {config.PROGRAM_ID} from the network...")
+        program_source = query.get_program(config.PROGRAM_ID)
+
         program = aleo.Program.from_string(program_source)
         process.add_program(program)
 
@@ -65,7 +54,7 @@ def resolve_market(market_id, winning_option):
         process.verify_execution(execution)
 
         # 5. Handle Fees (Public Fee)
-        fee_cost = 100_000  # Example fee in microcredits
+        fee_cost = config.RESOLVE_POOL_FEE 
         fee_auth = process.authorize_fee_public(
             private_key, fee_cost, execution_id, None
         )
@@ -80,7 +69,7 @@ def resolve_market(market_id, winning_option):
 
         tx_json = transaction.to_json()
         response = requests.post(
-            f"{ALEO_NODE_URL}/testnet3/transaction/broadcast", data=tx_json
+            config.ALEO_BROADCAST_URL, data=tx_json
         )
 
         if response.status_code == 200:
@@ -94,6 +83,7 @@ def resolve_market(market_id, winning_option):
         print(f"❌ SDK Error during resolution: {e}")
         return False
 
+
 def main():
     db.init_db()
     print("🤖 Oracle Worker is running and monitoring pending markets...")
@@ -104,7 +94,9 @@ def main():
 
         for market_id, deadline, threshold, metric_type in pending:
             if current_time >= deadline:
-                print(f"⏰ Deadline reached for market: {market_id} (Metric: {metric_type})")
+                print(
+                    f"⏰ Deadline reached for market: {market_id} (Metric: {metric_type})"
+                )
 
                 # Modular Metric Fetching
                 handler = registry.get_metric(metric_type)

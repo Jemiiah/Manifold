@@ -1,15 +1,9 @@
 import click
-import os
-from dotenv import load_dotenv
 import db
 import worker
 import aleo
 import requests
-
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
-
-private_key_str = os.getenv("ORACLE_PRIVATE_KEY")
-aleo_node_url = os.getenv("ALEO_NODE_URL")
+import config
 
 
 @click.group()
@@ -44,20 +38,19 @@ def create_market(title_field, threshold, snapshot_time, metric):
     Creates a new metric-based prediction market and registers it for snapshot.
     """
 
-    if not private_key_str or not aleo_node_url:
+    if not config.ORACLE_PRIVATE_KEY or not config.ALEO_NODE_URL:
         click.echo("Error: ORACLE_PRIVATE_KEY or ALEO_NODE_URL not found in .env.")
         return
 
     try:
         # 1. Setup SDK
-        private_key = aleo.PrivateKey.from_string(private_key_str)
-        query = aleo.Query.rest(aleo_node_url)
+        private_key = aleo.PrivateKey.from_string(config.ORACLE_PRIVATE_KEY)
+        query = aleo.Query.rest(config.ALEO_NODE_URL)
         process = aleo.Process.load()
 
         # 2. Load program from network
-        program_id = "prediction.aleo"
-        click.echo(f"📡 Fetching program {program_id} from network...")
-        program_source = query.get_program(program_id)
+        click.echo(f"📡 Fetching program {config.PROGRAM_ID} from network...")
+        program_source = query.get_program(config.PROGRAM_ID)
         
         program = aleo.Program.from_string(program_source)
         process.add_program(program)
@@ -84,7 +77,7 @@ def create_market(title_field, threshold, snapshot_time, metric):
         execution_id = execution.execution_id()
 
         # 5. Fee
-        fee_cost = 500_000  # Example fee
+        fee_cost = config.CREATE_POOL_FEE
         fee_auth = process.authorize_fee_public(
             private_key, fee_cost, execution_id, None
         )
@@ -97,7 +90,7 @@ def create_market(title_field, threshold, snapshot_time, metric):
         tx_json = transaction.to_json()
         click.echo(f"📡 Broadcasting transaction {execution_id}...")
         response = requests.post(
-            f"{aleo_node_url}/testnet3/transaction/broadcast", data=tx_json
+            config.ALEO_BROADCAST_URL, data=tx_json
         )
 
         if response.status_code == 200:
