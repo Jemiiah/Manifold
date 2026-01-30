@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Metric } from "./base";
-import { ETHERSCAN_API_KEY } from "../config";
+import { Metric } from "./base.js";
+import { ETHERSCAN_API_KEY } from "../config.js";
 
 export class ETHStakingRateMetric implements Metric {
     name = "eth_staking_rate";

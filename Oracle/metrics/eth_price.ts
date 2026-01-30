@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Metric } from "./base";
+import { Metric } from "./base.js";
 
 export class ETHPriceMetric implements Metric {
     name = "eth_price";
