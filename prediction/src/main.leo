@@ -12,12 +12,14 @@ program predictionprivacyhack.aleo {
      total_staked: u64, // Total amount staked across all options
      option_a_stakes: u64, // Total stakes for option A
      option_b_stakes: u64, // Total stakes for option B
+     total_no_of_stakes: u64, // Total number of stakes placed
+     total_no_of_stakes_option_a: u64, // Total number of stakes for option A
+     total_no_of_stakes_option_b: u64, // Total number of stakes for option
     }
 
     struct Default {
         id: u32
     }
-
 
     // A structure to represent user predictions
     record Prediction {
@@ -35,17 +37,15 @@ program predictionprivacyhack.aleo {
         amount_won: u64,
     }
 
-    // Save proposal info in public storage.
+    // Save pool in public storage.
     mapping pools: field => Pool; // pool id => Pool details
 
     // Track total predictions per pool
     mapping total_predictions: field => u64; // pool id => total predictions count
 
     // Track user predictions todo(): implement logic to store user predictions
-    mapping user_predictions: address => [field; 1]; // user address => prediction ids
-
-    // Track predictions per pool
-    mapping pool_predictions: field => [field; 1]; // pool id => prediction ids
+    // mapping user_predictions: address => [field; 1]; // user address => prediction ids
+    storage user_predictions: [field]; // user address => prediction ids
 
     const ADMIN: address = aleo1jl3q3uywtdzlr8dln65xjc2mr7vwa2pm9fsenq49zsgsz5a8pqzs0j7cj5;
 
@@ -82,6 +82,9 @@ program predictionprivacyhack.aleo {
             total_staked: 0u64,
             option_a_stakes: 0u64,
             option_b_stakes: 0u64,
+            total_no_of_stakes: 0u64,
+            total_no_of_stakes_option_a: 0u64,
+            total_no_of_stakes_option_b: 0u64,
         };
 
         return (pool, finalize_create_pool(id, pool));
@@ -92,7 +95,6 @@ program predictionprivacyhack.aleo {
     ) {
         Mapping::set(total_predictions, id, 0u64);
         Mapping::set(pools, id, pool);
-        Mapping::set(pool_predictions, id, [id]); // todo(): change this to the base predictions the from the amdin
     }
 
     // Transition to lock a prediction pool (prevent further predictions).
@@ -177,7 +179,6 @@ program predictionprivacyhack.aleo {
         pool.option_b_stakes += option_b_stakes; 
 
         Mapping::set(pools, pool_id, pool);
-        Mapping::set(pool_predictions, pool_id, [prediction_id]); 
 
         let current_total = Mapping::get(total_predictions, pool_id);
         Mapping::set(total_predictions, pool_id, current_total + 1u64);
