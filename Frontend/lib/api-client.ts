@@ -1,18 +1,20 @@
 // Backend API client for fetching markets
 const API_BASE_URL = 'https://blockseer.onrender.com';
 
-// API response types
+// API response types matching backend format
 export interface ApiMarket {
-  id: string;
+  market_id: string;
   title: string;
   description: string;
   status: 'pending' | 'locked' | 'resolved';
-  deadline?: number;
-  total_staked?: number;
-  option_a_stakes?: number;
-  option_b_stakes?: number;
-  total_predictions?: number;
-  winning_option?: number;
+  deadline: string;
+  threshold: string;
+  metric_type: string;
+  total_staked: string;
+  option_a_stakes: string;
+  option_b_stakes: string;
+  option_a_label: string;
+  option_b_label: string;
 }
 
 // Fetch all markets

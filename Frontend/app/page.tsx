@@ -11,8 +11,8 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'market' | 'portfolio'>('market');
   const { connected: isConnected } = useWallet();
 
-  // Fetch pools from Aleo network (with dummy fallback)
-  const { pools, isLoading: isLoadingPools, isDummyData } = useAleoPools();
+  // Fetch pools from backend API (with dummy fallback for instant loading)
+  const { pools, isLoading: isLoadingPools, isBackendLoading, isDummyData } = useAleoPools();
 
   const {
     filter,
@@ -55,7 +55,13 @@ export default function HomePage() {
               <p className="text-zinc-400 text-lg">
                 Trade on crypto events with zero-knowledge privacy on Aleo.
               </p>
-              {isDummyData && (
+              {isBackendLoading && (
+                <p className="text-blue-400/70 text-sm mt-2 flex items-center gap-2">
+                  <span className="animate-spin h-3 w-3 border border-blue-400 border-t-transparent rounded-full"></span>
+                  Loading markets from blockchain...
+                </p>
+              )}
+              {!isBackendLoading && isDummyData && (
                 <p className="text-amber-400/70 text-sm mt-2">
                   Showing sample markets. Create a pool to see real predictions.
                 </p>
