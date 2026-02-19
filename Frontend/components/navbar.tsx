@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown, LogOut, Copy, Check, Search, X, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, LogOut, Copy, Check, Search, X, Settings, BarChart3, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
-import { DecryptPermission, WalletAdapterNetwork } from '@demox-labs/aleo-wallet-adapter-base';
-import { cn } from '@/lib/utils';
+import { cn, truncateAddress } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useWalletModal } from '@demox-labs/aleo-wallet-adapter-reactui';
 
 interface NavbarProps {
   activeTab: 'market' | 'portfolio';
@@ -23,11 +23,6 @@ interface NavbarProps {
 // Admin address - only this wallet can access admin panel
 const ADMIN_ADDRESS = 'aleo1jl3q3uywtdzlr8dln65xjc2mr7vwa2pm9fsenq49zsgsz5a8pqzs0j7cj5';
 
-function truncateAddress(address: string) {
-  if (address.length <= 14) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
 export function Navbar({
   activeTab,
   onTabChange,
@@ -39,18 +34,12 @@ export function Navbar({
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const { publicKey, connected, connecting, connect, disconnect, select, wallets } = useWallet();
+  const { publicKey, connected, connecting, disconnect } = useWallet();
+  const { setVisible: setWalletModalVisible } = useWalletModal();
   const address = publicKey || '';
 
-  const handleConnect = async () => {
-    if (wallets.length > 0) {
-      select(wallets[0].adapter.name);
-      try {
-        await connect(DecryptPermission.UponRequest, WalletAdapterNetwork.TestnetBeta);
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-      }
-    }
+  const handleConnect = () => {
+    setWalletModalVisible(true);
   };
 
   const handleCopyAddress = () => {
@@ -60,6 +49,15 @@ export function Navbar({
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  useEffect(() => {
+    if (!showAccountMenu) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAccountMenu(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showAccountMenu]);
 
   return (
     <>
@@ -244,6 +242,32 @@ export function Navbar({
           )}
         </div>
       </nav>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-800/60">
+        <div className="flex items-center justify-around h-14">
+          <button
+            onClick={() => onTabChange('market')}
+            className={cn(
+              'flex flex-col items-center gap-1 px-6 py-2 transition-colors',
+              activeTab === 'market' ? 'text-blue-400' : 'text-zinc-500'
+            )}
+          >
+            <Store className="w-5 h-5" />
+            <span className="text-xs font-medium">Markets</span>
+          </button>
+          <button
+            onClick={() => onTabChange('portfolio')}
+            className={cn(
+              'flex flex-col items-center gap-1 px-6 py-2 transition-colors',
+              activeTab === 'portfolio' ? 'text-blue-400' : 'text-zinc-500'
+            )}
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span className="text-xs font-medium">Portfolio</span>
+          </button>
+        </div>
+      </div>
     </>
   );
 }

@@ -5,12 +5,10 @@ import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
 import { ArrowLeft, Plus, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { API_BASE_URL } from '@/lib/api-client';
 
 // Admin address - only this wallet can create markets
 const ADMIN_ADDRESS = 'aleo1jl3q3uywtdzlr8dln65xjc2mr7vwa2pm9fsenq49zsgsz5a8pqzs0j7cj5';
-
-// Backend API URL
-const API_BASE_URL = 'https://blockseer.onrender.com';
 
 // Metric types available from your oracle
 const METRIC_TYPES = [
@@ -76,7 +74,7 @@ export default function AdminPage() {
         deadline: deadlineTimestamp.toString(),
       };
 
-      const response = await fetch(`${API_BASE_URL}/markets`, {
+      const response = await fetch('/api/markets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

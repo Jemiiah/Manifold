@@ -56,9 +56,17 @@ export default function HomePage() {
                 Trade on crypto events with zero-knowledge privacy on Aleo.
               </p>
               {error && (
-                <p className="text-red-400/70 text-sm mt-2">
-                  Error loading markets: {error}
-                </p>
+                <div className="flex items-center gap-3 mt-2">
+                  <p className="text-red-400/70 text-sm">
+                    Error loading markets: {error}
+                  </p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="text-sm text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
               )}
             </div>
 
@@ -91,7 +99,7 @@ export default function HomePage() {
               </div>
             ) : (
               /* Market Grid */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredMarkets.map((market) => (
                   <MarketCard key={market.id} market={market} />
                 ))}

@@ -6,7 +6,7 @@ import { cn, calculateOrderSummary } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { usePrediction } from '@/hooks/use-prediction';
 import { useWallet } from '@demox-labs/aleo-wallet-adapter-react';
-import { DecryptPermission, WalletAdapterNetwork } from '@demox-labs/aleo-wallet-adapter-base';
+import { useWalletModal } from '@demox-labs/aleo-wallet-adapter-reactui';
 import { Loader2 } from 'lucide-react';
 
 interface TradingPanelProps {
@@ -19,18 +19,12 @@ export function TradingPanel({ market }: TradingPanelProps) {
   const [txStatus, setTxStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const [txMessage, setTxMessage] = useState<string>('');
 
-  const { connected, publicKey, connecting, connect, select, wallets } = useWallet();
+  const { connected, publicKey, connecting } = useWallet();
+  const { setVisible: setWalletModalVisible } = useWalletModal();
   const { makePrediction, isLoading, error } = usePrediction();
 
-  const handleConnectWallet = async () => {
-    if (wallets.length > 0) {
-      select(wallets[0].adapter.name);
-      try {
-        await connect(DecryptPermission.UponRequest, WalletAdapterNetwork.TestnetBeta);
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-      }
-    }
+  const handleConnectWallet = () => {
+    setWalletModalVisible(true);
   };
 
   const orderSummary = calculateOrderSummary(amount, selectedOutcome, market);
@@ -76,7 +70,7 @@ export function TradingPanel({ market }: TradingPanelProps) {
   };
 
   return (
-    <div className="bg-zinc-900/80 border border-zinc-800/60 rounded-2xl p-6 sticky top-6">
+    <div className="bg-zinc-900/80 border border-zinc-800/60 rounded-2xl p-6 sticky top-[88px]">
       <h2 className="text-lg font-semibold text-white mb-6">Place Order</h2>
 
       {/* Outcome Selection */}

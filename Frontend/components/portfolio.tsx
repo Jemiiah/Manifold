@@ -37,178 +37,15 @@ interface PortfolioProps {
   isConnected?: boolean;
 }
 
-// Mock data for active positions (linked to actual markets)
-const mockActivePositions: Position[] = [
-  {
-    id: '1',
-    marketId: '3',
-    market: 'Bitcoin $150K',
-    outcome: 'Yes',
-    shares: 150,
-    avgPrice: 0.65,
-    currentPrice: 0.72,
-    value: 108.0,
-    pl: 10.5,
-    plPercent: 10.77,
-    status: 'active',
-  },
-  {
-    id: '2',
-    marketId: '1',
-    market: 'Ethereum ETF Approval',
-    outcome: 'No',
-    shares: 200,
-    avgPrice: 0.45,
-    currentPrice: 0.38,
-    value: 76.0,
-    pl: 14.0,
-    plPercent: 22.58,
-    status: 'active',
-  },
-  {
-    id: '3',
-    marketId: '2',
-    market: 'Aleo Mainnet TVL',
-    outcome: 'Yes',
-    shares: 500,
-    avgPrice: 0.82,
-    currentPrice: 0.79,
-    value: 395.0,
-    pl: -15.0,
-    plPercent: -3.66,
-    status: 'active',
-  },
-  {
-    id: '4',
-    marketId: '4',
-    market: 'Solana Outage',
-    outcome: 'No',
-    shares: 100,
-    avgPrice: 0.25,
-    currentPrice: 0.22,
-    value: 22.0,
-    pl: 3.0,
-    plPercent: 13.64,
-    status: 'active',
-  },
-  {
-    id: '5',
-    marketId: '9',
-    market: 'Base Chain Dominance',
-    outcome: 'Yes',
-    shares: 300,
-    avgPrice: 0.55,
-    currentPrice: 0.61,
-    value: 183.0,
-    pl: 18.0,
-    plPercent: 10.91,
-    status: 'active',
-  },
-];
-
-// Mock data for closed positions (linked to actual markets)
-const mockClosedPositions: Position[] = [
-  {
-    id: '6',
-    marketId: '5',
-    market: 'zkSync Token Launch',
-    outcome: 'Yes',
-    shares: 1000,
-    avgPrice: 0.52,
-    currentPrice: 1.0,
-    value: 1000.0,
-    pl: 480.0,
-    plPercent: 92.31,
-    status: 'closed',
-    result: 'won',
-    closedAt: '2024-11-06',
-  },
-  {
-    id: '7',
-    marketId: '6',
-    market: 'Uniswap v4 Launch',
-    outcome: 'Yes',
-    shares: 250,
-    avgPrice: 0.78,
-    currentPrice: 1.0,
-    value: 250.0,
-    pl: 55.0,
-    plPercent: 28.21,
-    status: 'closed',
-    result: 'won',
-    closedAt: '2025-01-01',
-  },
-  {
-    id: '8',
-    marketId: '7',
-    market: 'Aleo ZK Proving',
-    outcome: 'Yes',
-    shares: 400,
-    avgPrice: 0.35,
-    currentPrice: 0.0,
-    value: 0.0,
-    pl: -140.0,
-    plPercent: -100.0,
-    status: 'closed',
-    result: 'lost',
-    closedAt: '2024-12-31',
-  },
-  {
-    id: '9',
-    marketId: '1',
-    market: 'Ethereum ETF Approval',
-    outcome: 'No',
-    shares: 600,
-    avgPrice: 0.42,
-    currentPrice: 0.0,
-    value: 0.0,
-    pl: -252.0,
-    plPercent: -100.0,
-    status: 'closed',
-    result: 'lost',
-    closedAt: '2024-05-23',
-  },
-  {
-    id: '10',
-    marketId: '8',
-    market: 'ETH Staking Rate',
-    outcome: 'No',
-    shares: 180,
-    avgPrice: 0.68,
-    currentPrice: 1.0,
-    value: 180.0,
-    pl: 57.6,
-    plPercent: 47.06,
-    status: 'closed',
-    result: 'won',
-    closedAt: '2024-12-31',
-  },
-  {
-    id: '11',
-    marketId: '9',
-    market: 'Base Chain Dominance',
-    outcome: 'Yes',
-    shares: 320,
-    avgPrice: 0.71,
-    currentPrice: 1.0,
-    value: 320.0,
-    pl: 92.8,
-    plPercent: 40.88,
-    status: 'closed',
-    result: 'won',
-    closedAt: '2024-11-15',
-  },
-];
-
-const defaultStats: PortfolioStats = {
-  totalValue: 784.0,
-  netPL: 324.9,
-  netPLPercent: 41.4,
-  totalVolume: 4722.55,
-  biggestWin: 480.0,
-  totalTrades: 11,
-  activePositions: 5,
-  closedPositions: 6,
+const emptyStats: PortfolioStats = {
+  totalValue: 0,
+  netPL: 0,
+  netPLPercent: 0,
+  totalVolume: 0,
+  biggestWin: 0,
+  totalTrades: 0,
+  activePositions: 0,
+  closedPositions: 0,
 };
 
 type TabType = 'active' | 'closed';
@@ -243,34 +80,26 @@ export function Portfolio({ isConnected = false }: PortfolioProps) {
     refetch: refetchPredictions,
   } = useUserPredictions();
 
-  // Convert predictions to positions, or use mock data as fallback
+  // Convert predictions to positions
   const realPositions = useMemo(() => predictionsToPositions(userPredictions), [userPredictions]);
 
-  // Use real positions if available, otherwise use mock data
-  const activePositions = hasPredictions
-    ? realPositions.filter((p) => p.status === 'active')
-    : mockActivePositions;
+  const activePositions = realPositions.filter((p) => p.status === 'active');
+  const closedPositions = realPositions.filter((p) => p.status === 'closed');
 
-  const closedPositions = hasPredictions
-    ? realPositions.filter((p) => p.status === 'closed')
-    : mockClosedPositions;
-
-  // Calculate stats from real data or use defaults
+  // Calculate stats from real data
   const stats = useMemo(() => {
-    if (hasPredictions) {
-      const totalValue = realPositions.reduce((sum, p) => sum + p.value, 0);
-      return {
-        totalValue,
-        netPL: 0,
-        netPLPercent: 0,
-        totalVolume: totalValue,
-        biggestWin: 0,
-        totalTrades: realPositions.length,
-        activePositions: activePositions.length,
-        closedPositions: closedPositions.length,
-      };
-    }
-    return defaultStats;
+    if (!hasPredictions) return emptyStats;
+    const totalValue = realPositions.reduce((sum, p) => sum + p.value, 0);
+    return {
+      totalValue,
+      netPL: 0,
+      netPLPercent: 0,
+      totalVolume: totalValue,
+      biggestWin: 0,
+      totalTrades: realPositions.length,
+      activePositions: activePositions.length,
+      closedPositions: closedPositions.length,
+    };
   }, [hasPredictions, realPositions, activePositions.length, closedPositions.length]);
 
   const filteredPositions = useMemo(() => {
@@ -299,9 +128,9 @@ export function Portfolio({ isConnected = false }: PortfolioProps) {
           <p className="text-zinc-400 text-lg">
             Track your predictions and performance across all markets.
           </p>
-          {!hasPredictions && isConnected && (
-            <p className="text-amber-400/70 text-sm mt-2">
-              Showing sample data. Sync wallet to see your predictions.
+          {!hasPredictions && isConnected && !isLoadingPredictions && (
+            <p className="text-zinc-500 text-sm mt-2">
+              Sync your wallet to load your predictions.
             </p>
           )}
         </div>
@@ -482,17 +311,43 @@ export function Portfolio({ isConnected = false }: PortfolioProps) {
         ) : filteredPositions.length === 0 ? (
           <div className="px-6 py-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mx-auto mb-4">
-              <BarChart3 className="w-8 h-8 text-zinc-500" />
+              {!hasPredictions && !searchQuery ? (
+                <RefreshCw className="w-8 h-8 text-zinc-500" />
+              ) : (
+                <BarChart3 className="w-8 h-8 text-zinc-500" />
+              )}
             </div>
             <p className="text-zinc-400 mb-2">
-              {searchQuery ? 'No positions match your search' : `No ${activeTab} positions`}
+              {searchQuery
+                ? 'No positions match your search'
+                : !hasPredictions
+                ? 'No predictions loaded yet'
+                : `No ${activeTab} positions`}
             </p>
-            <p className="text-sm text-zinc-500">
-              {searchQuery ? 'Try a different search term' : 'Start trading to see your positions here'}
+            <p className="text-sm text-zinc-500 mb-4">
+              {searchQuery
+                ? 'Try a different search term'
+                : !hasPredictions
+                ? 'Sync your wallet to load your on-chain predictions.'
+                : 'Start trading to see your positions here'}
             </p>
+            {!hasPredictions && !searchQuery && (
+              <button
+                onClick={() => refetchPredictions()}
+                disabled={isLoadingPredictions}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {isLoadingPredictions ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+                {isLoadingPredictions ? 'Syncing...' : 'Sync Wallet'}
+              </button>
+            )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scroll-hint">
             <table className="w-full">
               <thead>
                 <tr className="text-left text-xs font-medium text-zinc-500 uppercase tracking-wider bg-zinc-800/30">

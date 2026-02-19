@@ -62,3 +62,28 @@ input[type='number']::-webkit-outer-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+/* Mobile scroll hint for horizontally scrollable tables */
+@media (max-width: 767px) {
+  .scroll-hint {
+    position: relative;
+  }
+  .scroll-hint::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 32px;
+    background: linear-gradient(to right, transparent, hsl(240 10% 4%));
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* Add bottom padding on mobile for the fixed bottom tab bar */
+@media (max-width: 767px) {
+  main {
+    padding-bottom: 4rem;
+  }
+}

@@ -14,6 +14,12 @@ export function FeaturedMarket({ markets }: FeaturedMarketProps) {
   const trendingMarkets = markets.slice(0, 5);
 
   useEffect(() => {
+    if (activeIndex >= trendingMarkets.length) {
+      setActiveIndex(0);
+    }
+  }, [trendingMarkets.length]);
+
+  useEffect(() => {
     if (trendingMarkets.length === 0) return;
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % trendingMarkets.length);
