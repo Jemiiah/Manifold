@@ -213,7 +213,7 @@ export function Navbar({
                   disabled={connecting}
                 >
                   <span className="w-2 h-2 rounded-full bg-zinc-400" />
-                  {connecting ? 'Connecting...' : 'Connect Leo Wallet'}
+                  {connecting ? 'Connecting...' : 'Connect Wallet'}
                 </Button>
               )}
             </div>
