@@ -1,5 +1,5 @@
 // Program ID - deployed version
-const PROGRAM_ID = 'predictionprivacyhackviii.aleo';
+const PROGRAM_ID = 'manifoldpredictionv2.aleo';
 
 // Network API - using testnet endpoint
 const NETWORK_URL = 'https://api.explorer.provable.com/v1/testnet';

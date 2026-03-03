@@ -2,36 +2,16 @@
 
 import { useState } from 'react';
 import { useWallet } from '@provablehq/aleo-wallet-adaptor-react';
+import { Loader2 } from 'lucide-react';
 import { Navbar } from '@/components/navbar';
 import { Portfolio } from '@/components/portfolio';
 import { MarketCard, MarketFilters, FeaturedMarket } from '@/components/market';
 import { useMarkets, useAleoPools } from '@/hooks';
 
-function SkeletonCard() {
-  return (
-    <div className="bg-[hsl(230,15%,8%)]/80 border border-white/[0.06] rounded-[24px] p-6 min-h-[252px] animate-pulse">
-      <div className="flex items-start justify-between mb-4">
-        <div className="h-5 w-14 bg-white/[0.06] rounded-full" />
-        <div className="h-4 w-8 bg-white/[0.04] rounded" />
-      </div>
-      <div className="h-5 w-3/4 bg-white/[0.06] rounded mb-2" />
-      <div className="h-4 w-1/2 bg-white/[0.04] rounded mb-5" />
-      <div className="h-8 w-28 bg-white/[0.04] rounded-lg mb-5" />
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="h-14 bg-blue-500/5 rounded-full" />
-        <div className="h-14 bg-white/[0.03] rounded-full" />
-      </div>
-      <div className="h-px bg-white/[0.06] mb-3" />
-      <div className="h-4 w-24 bg-white/[0.04] rounded" />
-    </div>
-  );
-}
-
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'market' | 'portfolio'>('market');
   const { connected: isConnected } = useWallet();
 
-  // Fetch pools from backend API
   const { pools, isLoading: isLoadingPools, error } = useAleoPools();
 
   const {
@@ -44,13 +24,8 @@ export default function HomePage() {
     upcomingCount,
   } = useMarkets(pools);
 
-  const handleLogoClick = () => {
-    setActiveTab('market');
-  };
-
-  const handleTabChange = (tab: 'market' | 'portfolio') => {
-    setActiveTab(tab);
-  };
+  const handleLogoClick = () => setActiveTab('market');
+  const handleTabChange = (tab: 'market' | 'portfolio') => setActiveTab(tab);
 
   return (
     <>
@@ -101,34 +76,25 @@ export default function HomePage() {
             {/* Featured Market */}
             <FeaturedMarket markets={pools} />
 
-            {/* Loading State — Skeleton grid */}
+            {/* Loading State */}
             {isLoadingPools ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))}
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                <p className="text-sm text-white/40">Loading markets...</p>
               </div>
             ) : filteredMarkets.length === 0 ? (
-              /* Empty State */
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <p className="text-[hsl(230,10%,50%)] text-lg mb-2">No markets found</p>
                 <p className="text-[hsl(230,10%,35%)] text-sm">
                   {pools.length === 0
-                    ? "No prediction markets available yet."
-                    : "No markets match your current filter."}
+                    ? 'No prediction markets available yet.'
+                    : 'No markets match your current filter.'}
                 </p>
               </div>
             ) : (
-              /* Market Grid — staggered animations */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredMarkets.map((market, index) => (
-                  <div
-                    key={market.id}
-                    className="animate-fade-in-up"
-                    style={{ animationDelay: `${Math.min(index * 60, 600)}ms` }}
-                  >
-                    <MarketCard market={market} />
-                  </div>
+                {filteredMarkets.map((market) => (
+                  <MarketCard key={market.id} market={market} />
                 ))}
               </div>
             )}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Market, OutcomeType } from '@/types';
 import { cn, calculateOrderSummary, calculateOdds } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -20,42 +20,10 @@ export function TradingPanel({ market }: TradingPanelProps) {
   const [txStatus, setTxStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const [txMessage, setTxMessage] = useState<string>('');
 
-  // Log market data when component mounts or market changes
-  console.log('\n🏪 === TRADING PANEL LOADED ===');
-  console.log('Market ID:', market.id);
-  console.log('Market Title:', market.title);
-  console.log('Market Subtitle:', market.subtitle);
-  console.log('Market Description:', market.description);
-  console.log('Market Status:', market.status);
-  console.log('Market Category:', market.category);
-  console.log('Market End Date:', market.endDate);
-  console.log('Market Yes Price:', market.yesPrice + '¢');
-  console.log('Market No Price:', market.noPrice + '¢');
-  console.log('Market Volume:', market.volume);
-  console.log('Market Traders:', market.traders);
-  console.log('Market Change:', market.change + '%');
-  console.log('Full Market Object:', market);
-  console.log('================================\n');
-
   const { connected, address, connecting } = useWallet();
   const { setVisible: setWalletModalVisible } = useWalletModal();
   const { makePrediction, isLoading, error } = usePrediction();
   const { pool: onChainPool, totalPredictions, isLoading: poolLoading } = useOnChainPool(market.id);
-
-  // Log on-chain pool data when it's loaded
-  useEffect(() => {
-    if (poolLoading) {
-      console.log('⏳ Loading on-chain pool data...');
-    } else if (onChainPool) {
-      console.log('\n💎 === ON-CHAIN POOL DATA LOADED ===');
-      console.log('Pool loaded successfully!');
-      console.log('Pool Object:', onChainPool);
-      console.log('Total Predictions:', totalPredictions);
-      console.log('=====================================\n');
-    } else {
-      console.log('⚠️ No on-chain pool data found for market ID:', market.id);
-    }
-  }, [onChainPool, poolLoading, totalPredictions, market.id]);
 
   const handleConnectWallet = () => {
     setWalletModalVisible(true);
@@ -70,25 +38,15 @@ export function TradingPanel({ market }: TradingPanelProps) {
     ? calculateOdds(onChainStakes.optionAStakes, onChainStakes.optionBStakes)
     : null;
 
-  // Console log the pari-mutuel odds calculation
-  if (oddsInfo && onChainPool) {
-    console.log('=== PARI-MUTUEL ODDS CALCULATION ===');
-    console.log('Option A Stakes (Yes):', onChainPool.option_a_stakes / 1_000_000, 'ALEO');
-    console.log('Option B Stakes (No):', onChainPool.option_b_stakes / 1_000_000, 'ALEO');
-    console.log('Total Staked:', onChainPool.total_staked / 1_000_000, 'ALEO');
-    console.log('Yes Price (Implied Probability):', oddsInfo.yesPrice + '%');
-    console.log('No Price (Implied Probability):', oddsInfo.noPrice + '%');
-    console.log('Yes Odds (Multiplier):', oddsInfo.yesOdds.toFixed(2) + 'x');
-    console.log('No Odds (Multiplier):', oddsInfo.noOdds.toFixed(2) + 'x');
-    console.log('====================================');
-  }
-
   const orderSummary = calculateOrderSummary(amount, selectedOutcome, market, onChainStakes);
   const quickAmounts = [10, 25, 50, 100];
 
+
+  
+
   const handleTrade = async () => {
     if (!connected || !amount) return;
-
+    
     setTxStatus('pending');
     setTxMessage('Fetching records & preparing transaction...');
 
@@ -97,7 +55,7 @@ export function TradingPanel({ market }: TradingPanelProps) {
 
     // Amount in Aleo (the hook will convert to microcredits)
     const amountInAleo = parseFloat(amount);
-
+    
     if (isNaN(amountInAleo) || amountInAleo <= 0) {
       setTxStatus('error');
       setTxMessage('Please enter a valid amount');
@@ -164,13 +122,13 @@ export function TradingPanel({ market }: TradingPanelProps) {
       <div className="grid grid-cols-2 gap-3 mb-6">
         <OutcomeButton
           type="yes"
-          price={oddsInfo ? oddsInfo.yesPrice : market.yesPrice}
+          price={market.yesPrice}
           isSelected={selectedOutcome === 'yes'}
           onClick={() => setSelectedOutcome('yes')}
         />
         <OutcomeButton
           type="no"
-          price={oddsInfo ? oddsInfo.noPrice : market.noPrice}
+          price={market.noPrice}
           isSelected={selectedOutcome === 'no'}
           onClick={() => setSelectedOutcome('no')}
         />

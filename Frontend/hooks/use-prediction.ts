@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useWallet } from '@provablehq/aleo-wallet-adaptor-react';
 
 // Program ID from the deployed Leo program
-const PROGRAM_ID = 'predictionprivacyhackviii.aleo';
+const PROGRAM_ID = 'manifoldpredictionv2.aleo';
 
 // Default pool ID (will be made dynamic later)
 const DEFAULT_POOL_ID = '1field';
